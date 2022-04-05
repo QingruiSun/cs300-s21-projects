@@ -25,8 +25,54 @@
 size_t mbslen(const char* bytes) {
   // # of code points in the UTF-8 string
   size_t count = 0;
-
-  // TODO: implement this!
-
+  const char* ptr = bytes;
+  if (ptr == NULL) {
+    return -1;
+  }
+  while (*ptr != 0) {
+	char c_128 = 128;
+	char c_224 = 224;
+	char c_192 = 192;
+	char c_240 = 240;
+	char c_248 = 248;
+	char c_0 = 0;
+    if ((*ptr & c_128) == c_0) {
+	  count++;
+	  ptr++;
+	  continue;
+	}
+	const char* ptr_b = ptr + 1;
+    if ((*ptr & c_224) == c_192) {
+	  if ((*ptr_b & c_192) == c_128) {
+	    count++;
+		ptr = ptr + 2;
+		continue;
+	  } else {
+	    return -1;
+	  }
+	}
+	const char* ptr_c = ptr + 2;
+	if ((*ptr & c_240) == c_224) {
+	  if (((*ptr_b & c_192) == c_128) && ((*ptr_c & c_192) == c_128)) {
+	    count++;
+		ptr = ptr + 3;
+		continue;
+	  } else {
+	    return -1;
+	  }
+	}
+	const char* ptr_d = ptr + 3;
+	if ((*ptr & c_248) == c_240) {
+	  if (((*ptr_b & c_192) == c_128) && ((*ptr_c & c_192) == c_128) && ((*ptr_d & c_192) == c_128)) {
+	    count++;
+		ptr = ptr + 4;
+		continue;
+	  } else {
+	    return -1;
+	  }
+	}
+	// first byte is not a valid pattern.
+	return -1;
+  }
   return count;
 }

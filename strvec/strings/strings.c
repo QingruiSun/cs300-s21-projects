@@ -20,8 +20,12 @@
  *   character that terminates it.
  */
 size_t strlen(const char* s) {
-  // TODO: Fill In
-  return 0;
+  size_t count = 0;
+  while (*s != 0) {
+	count++;
+	s++;
+  }
+  return count;
 }
 
 /*
@@ -41,7 +45,27 @@ size_t strlen(const char* s) {
  *
  */
 int strncmp(const char* s1, const char* s2, size_t n) {
-  // TODO: Fill In
+  size_t index = 0;
+  while ((*s1 != 0) && (*s2 != 0) && (index < n)) {
+	if (*s1 < *s2) {
+	  return -1;
+	}
+	if (*s1 > *s2) {
+	  return 1;
+	}
+	s1++;
+	s2++;
+	index++;
+  }
+  if (index == n) {
+    return 0;
+  }
+  if (*s1 != 0) {
+    return 1;
+  }
+  if (*s2 != 0) {
+    return -1;
+  }
   return 0;
 }
 
@@ -87,8 +111,20 @@ int strncmp(const char* s1, const char* s2, size_t n) {
  * the function description to see what is expected of your implementation.
  */
 char* strncpy(char* dest, const char* src, size_t n) {
-  // TODO: Fill In
-  return NULL;
+  size_t count = 0;
+  const char* ptr = src;
+  while ((*ptr != 0) && (count < n)) {
+    *dest = *ptr;
+	ptr++;
+	dest++;
+	count++;
+  }
+  while (count < n) {
+    *dest = 0;
+	dest++;
+	count++;
+  }
+  return dest;
 }
 
 /*
@@ -110,7 +146,16 @@ char* strncpy(char* dest, const char* src, size_t n) {
  * strchr
  */
 char* strchr(const char* str, int chr) {
-  // TODO: Fill In
+  char* ptr = (char*)str;
+  while (*ptr != 0) {
+    if (*ptr == chr) {
+	  return ptr;
+	}
+	ptr++;
+  }
+  if (chr == '\0') {
+    return ptr;
+  }
   return NULL;
 }
 
@@ -144,6 +189,49 @@ char* strtok(char* str, const char* delim) {
     // reset saved if str is not null
     saved = str;
   }
-  // TODO: Complete this function
-  return NULL;
+  if (saved == NULL) {
+    return NULL;
+  }
+  if (*saved == 0 || *delim == 0) {
+    return NULL;
+  }
+  char* ptr = saved;
+  while (*ptr != 0) {
+    const char* ptr_b = delim;
+	while (*ptr_b != 0) {
+	  if (*ptr_b == *ptr) {
+	    break;
+	  }
+	  ptr_b++;
+	}
+    if (*ptr_b == 0) {
+	  break;
+	}
+	ptr++;
+  }
+  // cannot find a not delim character
+  if (*ptr == 0) {
+    saved = ptr;
+	return NULL;
+  }
+  // have found a delim character
+  char* ptr_start = ptr;
+  // want to find a delim character
+  while (*ptr != 0) {
+    const char* ptr_b = delim;
+	while (*ptr_b != 0) {
+	  if (*ptr == *ptr_b) {
+	    break;
+	  }
+	  ptr_b++;
+	}
+	if (*ptr_b != 0) {
+	  break;
+	}
+    ptr++;	
+  }
+  *ptr = 0;
+  ptr++;
+  saved = ptr;
+  return ptr_start;
 }
