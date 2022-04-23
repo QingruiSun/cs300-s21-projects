@@ -11,7 +11,10 @@
  */
 void initialize_vector(vector_t* v, size_t type) {
   // TODO: implement
-  v->array = NULL;  // you'll need to change this
+  v->array = malloc(2 * type);  // you'll need to change this
+  v->capacity = 2;
+  v->ele_size = type;
+  v->length = 0;
 }
 
 /*Frees this vector
@@ -21,6 +24,10 @@ void initialize_vector(vector_t* v, size_t type) {
  */
 void destroy_vector(vector_t* v) {
   // TODO: implement
+  free(v->array);
+  v->array = NULL;
+  v->capacity = 0;
+  v->length = 0;
 }
 
 /*Gets the size of a given vector
@@ -30,7 +37,7 @@ void destroy_vector(vector_t* v) {
  */
 size_t vector_size(vector_t* v) {
   // TODO: implement
-  return (size_t)0;
+  return v->length;
 }
 
 /*Gets the element at a desired position within a vector
@@ -42,7 +49,10 @@ size_t vector_size(vector_t* v) {
  */
 void* vector_get(vector_t* v, int index) {
   // TODO: implement
-  return NULL;
+  if ((size_t)index > v->length) {
+    return NULL;
+  }
+  return v->array + ((size_t)index * v->ele_size);
 }
 
 /*Adds an element to the back of a vector, doubling the capacity of the vector
@@ -53,6 +63,12 @@ void* vector_get(vector_t* v, int index) {
  */
 void vector_add_back(vector_t* v, void* ele) {
   // TODO: implement
+  if (v->length == v->capacity) {
+    v->array = realloc(v->array, v->capacity * 2 * v->ele_size);
+    v->capacity *= 2;
+  }
+  memcpy(v->array + v->ele_size * v->length, ele, v->ele_size);
+  v->length += 1;
 }
 
 /*Removes the last element in a vector
@@ -62,6 +78,7 @@ void vector_add_back(vector_t* v, void* ele) {
  */
 void vector_delete_back(vector_t* v) {
   // TODO: implement
+  v->length -= 1;
 }
 
 /*Adds an element to a specified index in a vector, double its capacity if
@@ -73,6 +90,18 @@ void vector_delete_back(vector_t* v) {
  */
 void vector_add(vector_t* v, void* ele, int index) {
   // TODO: implement
+  if ((size_t)index > v->length) {
+    return;
+  }
+  if (v->length == v->capacity) {
+    v->array = realloc(v->array, v->capacity * 2 * v->ele_size);
+    v->capacity *= 2;
+  }
+  for (size_t i = v->length; i > (size_t)index; --i) {
+    memcpy(v->array + i * v->ele_size, v->array + (i - 1) * v->ele_size, v->ele_size);
+  }
+  memcpy(v->array + (size_t)index * v->ele_size, ele, v->ele_size);
+  v->length += 1;
 }
 
 /*Deletes an element from the specified position in a vector
@@ -83,4 +112,11 @@ void vector_add(vector_t* v, void* ele, int index) {
  */
 void vector_delete(vector_t* v, int index) {
   // TODO: implement
+  if ((size_t)index >= v->length) {
+    return;
+  }
+  for (size_t i = (size_t)index + 1; i < v->length; ++i) {
+    memcpy(v->array + (i - 1) * v->ele_size, v->array + i * v->ele_size, v->ele_size);
+  }
+  v->length -= 1;
 }
