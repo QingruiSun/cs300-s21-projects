@@ -57,6 +57,11 @@ struct dmalloc_stats {
     uintptr_t heap_max;                 // largest allocated addr
 };
 
+typedef struct position{
+    char* file;
+    long line;
+} position;
+
 /**
  * get_statistics(stats)
  *      fill a dmalloc_stats pointer with the current memory statistics
