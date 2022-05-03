@@ -26,7 +26,7 @@
     When starting, you might want to change this for testing on small files.
 */
 #ifndef BUFFER_SIZE
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 20
 #endif
 
 #if(BUFFER_SIZE < 4)
@@ -44,9 +44,9 @@
    hunt down 30 printfs when you want to hand in
 */
 #define DEBUG_PRINT 0
-#define DEBUG_STATISTICS 1
+#define DEBUG_STATISTICS 0
 
-enum RW_FLAG {OPEN, READ, WRITE};
+enum RW_FLAG {OPEN, READ, WRITE, SEEK};
 
 struct io300_file {
     /* read,write,seek all take a file descriptor as a parameter */
@@ -144,7 +144,7 @@ struct io300_file *io300_open(const char *const path, char *description) {
     ret->rw_flag = OPEN;
     ret->read_index = -1;
     ret->read_buf_end = -1;
-    ret->write_index = 0;
+    ret->write_index = -1;
     ret->cur_off = 0;
     check_invariants(ret);
     dbg(ret, "Just finished initializing file from path: %s\n", path);
@@ -156,7 +156,14 @@ int io300_seek(struct io300_file *const f, off_t const pos) {
     f->stats.seeks++;
 
     // TODO: Implement this
+    if (f->rw_flag == WRITE) {
+      int flush_flag = io300_flush(f);
+      if (flush_flag < 0) {
+        return flush_flag;
+      }
+    }
     f->cur_off =  lseek(f->fd, pos, SEEK_SET);
+    f->rw_flag = SEEK;
     return f->cur_off;
 }
 
@@ -168,10 +175,11 @@ int io300_close(struct io300_file *const f) {
             f->description, f->stats.read_calls, f->stats.write_calls, f->stats.seeks);
 #endif
     // TODO: Implement this
+    int flush_flag = io300_flush(f);
     close(f->fd);
     free(f->buffer);
     free(f);
-    return 0;
+    return flush_flag;
 }
 
 off_t io300_filesize(struct io300_file *const f) {
@@ -190,7 +198,7 @@ int io300_readc(struct io300_file *const f) {
     // TODO: Implement this
     unsigned char c;
     if (io300_read(f, (char*)&c, 1) == 1) {
-        return 1;
+        return (int)c;
     } else {
         return -1;
     }
@@ -214,6 +222,14 @@ ssize_t io300_read(struct io300_file *const f, char *const buff, size_t const sz
       f->read_buf_end = -1;
       f->read_index = -1;
       f->cur_off = lseek(f->fd, 0, SEEK_CUR);
+    }
+    if (f->rw_flag == SEEK) {
+      ssize_t read_sz = read(f->fd, f->buffer, BUFFER_SIZE);
+      if (read_sz < 0) {
+        return -1;
+      }
+      f->read_index = -1;
+      f->read_buf_end = read_sz - 1;
     }
     f->rw_flag = READ;
     size_t remain_sz = f->read_buf_end - f->read_index;
@@ -250,7 +266,7 @@ ssize_t io300_read(struct io300_file *const f, char *const buff, size_t const sz
         memcpy(buffer_ptr, f->buffer, sz);
 	f->read_index += next_sz;
 	f->cur_off += next_sz;
-	return sz + remain_sz;
+	return next_sz + remain_sz;
       } else {
 	int copy_sz = f->read_buf_end - f->read_index;
         memcpy(buffer_ptr, f->buffer, copy_sz);
@@ -289,7 +305,11 @@ ssize_t io300_write(struct io300_file *const f, const char *buff, size_t const s
       return -1;
     }
     f->write_index = -1;
-    return write(f->fd, buff, sz);
+    write_sz = write(f->fd, buff, sz);
+    if (write_sz >= 0) {
+      f->cur_off += write_sz;
+    }
+    return write_sz;
 }
 
 int io300_flush(struct io300_file *const f) {
@@ -300,7 +320,9 @@ int io300_flush(struct io300_file *const f) {
       if (write_sz > 0) {
         f->write_index = f->write_index - write_sz;
       }
-      if (f->write_index < 0) {
+      if (f->write_index == -1) { //indicate flush all date to disk.
+        return 0;
+      } else {
         return -1;
       }
     }

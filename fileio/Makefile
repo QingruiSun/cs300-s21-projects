@@ -10,7 +10,7 @@ SANS_ENABLED ?= -fsanitize=address -fsanitize=undefined
 # -Wall -Wextra says to enable all standard, and some extra warnings
 # -Wshadow explicitly makes shadowing a local variable a warning
 # -std=gnu11 says which version of the C language our source program is written in
-CFLAGS       += -ggdb3 -Wall -Wextra -Wshadow -std=gnu11 $(SANS_ENABLED)
+CFLAGS       += -ggdb3 -Wall -Wextra -Wshadow -std=gnu11
 
 # These programs use your IO library. We will run them to make sure your code is
 # working correctly
