@@ -90,7 +90,7 @@ def runtests(tests):
     log('Also, if there is sanitizer output, that would be a good place to start.')
     print(json.dumps(tests, indent=4))
 
-    assert shell_return(f'rm -- {infile} {outfile} {outfile2} {integrity}', suppress=True) == 0
+    #assert shell_return(f'rm -- {infile} {outfile} {outfile2} {integrity}', suppress=True) == 0
 
 
 runtests({
