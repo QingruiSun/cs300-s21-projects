@@ -15,7 +15,13 @@
 ::grpc::Status SimpleShardkvServer::Get(::grpc::ServerContext* context,
                                         const ::GetRequest* request,
                                         ::GetResponse* response) {
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "not implemented");
+	const std::lock_guard<std::mutex> lock(map_mutex);
+	std::string key = request->key();
+	if (server_map.find(key) != server_map.end()) {
+	  response->set_data(server_map[key]);
+	  return ::grpc::Status::OK;
+	}
+	return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "key not found");
 }
 
 /**
@@ -33,7 +39,9 @@
 ::grpc::Status SimpleShardkvServer::Put(::grpc::ServerContext* context,
                                         const ::PutRequest* request,
                                         Empty* response) {
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "not implemented");
+	const std::lock_guard<std::mutex> lock(map_mutex);
+	server_map[request->key()] = request->data();
+	return ::grpc::Status::OK;
 }
 
 /**
@@ -51,7 +59,13 @@
 ::grpc::Status SimpleShardkvServer::Append(::grpc::ServerContext* context,
                                            const ::AppendRequest* request,
                                            Empty* response) {
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "not implemented");
+	const std::lock_guard<std::mutex> lock(map_mutex);
+	if (server_map.find(request->key()) != server_map.end()) {
+	  server_map[request->key()] = server_map[request->key()] + ", " + request->data();
+	} else {
+	  server_map[request->key()] = request->data();
+	}
+	return ::grpc::Status::OK;
 }
 
 /**
@@ -69,5 +83,11 @@
 ::grpc::Status SimpleShardkvServer::Delete(::grpc::ServerContext* context,
                                            const ::DeleteRequest* request,
                                            Empty* response) {
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "not implemented");
+	const std::lock_guard<std::mutex> lock(map_mutex);
+	auto entry = server_map.find(request->key());
+	if (entry != server_map.end()) {
+	  server_map.erase(entry);
+	  return ::grpc::Status::OK;
+	}
+	return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "key not exist in delete");
 }
