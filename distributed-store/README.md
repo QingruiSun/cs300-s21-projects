@@ -23,3 +23,6 @@ you instructions on how to use them.
 ## Conceptual Questions:
 
 ## How long did it take to complete Distributed Systems?
+
+
+SORRY! I CAN'T USE GRPC CONNECT SERVER TO CLIENT, SO I DECIDE TO GIVE UP THIS PROJECT!!!!!!!!!!!!!!!!!!
